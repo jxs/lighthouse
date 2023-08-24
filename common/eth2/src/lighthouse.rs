@@ -262,7 +262,12 @@ impl ProcessHealth {
             .memory_info()
             .map_err(|e| format!("Unable to get process memory info: {:?}", e))?;
 
-        let stat = pid::stat_self().map_err(|e| format!("Unable to get stat: {:?}", e))?;
+        let me = procfs::process::Process::myself()
+            .map_err(|e| format!("Unable to get process: {:?}", e))?;
+        let stat = me
+            .stat()
+            .map_err(|e| format!("Unable to get stat: {:?}", e))?;
+
         let process_times = process
             .cpu_times()
             .map_err(|e| format!("Unable to get process cpu times : {:?}", e))?;
