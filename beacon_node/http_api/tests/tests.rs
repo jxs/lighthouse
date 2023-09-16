@@ -8,7 +8,7 @@ use eth2::{
     mixin::{RequestAccept, ResponseForkName, ResponseOptional},
     reqwest::RequestBuilder,
     types::{BlockId as CoreBlockId, ForkChoiceNode, StateId as CoreStateId, *},
-    BeaconNodeHttpClient, Error, Timeouts,
+    BeaconNodeHttpClient, Error, StatusCode, Timeouts,
 };
 use execution_layer::test_utils::TestingBuilder;
 use execution_layer::test_utils::DEFAULT_BUILDER_THRESHOLD_WEI;
@@ -28,6 +28,7 @@ use sensitive_url::SensitiveUrl;
 use slot_clock::SlotClock;
 use state_processing::per_block_processing::get_expected_withdrawals;
 use state_processing::per_slot_processing;
+use state_processing::state_advance::partial_state_advance;
 use std::convert::TryInto;
 use std::sync::Arc;
 use tokio::time::Duration;
@@ -1313,6 +1314,63 @@ impl ApiTester {
             self.network_rx.network_recv.recv().await.is_some(),
             "gossip valid blocks should be sent to network"
         );
+
+        self
+    }
+
+    pub async fn test_post_beacon_blocks_duplicate(self) -> Self {
+        let block = self
+            .harness
+            .make_block(
+                self.harness.get_current_state(),
+                self.harness.get_current_slot(),
+            )
+            .await
+            .0;
+
+        assert!(self.client.post_beacon_blocks(&block).await.is_ok());
+
+        let blinded_block = block.clone_as_blinded();
+
+        // Test all the POST methods in sequence, they should all behave the same.
+        let responses = vec![
+            self.client.post_beacon_blocks(&block).await.unwrap_err(),
+            self.client
+                .post_beacon_blocks_v2(&block, None)
+                .await
+                .unwrap_err(),
+            self.client
+                .post_beacon_blocks_ssz(&block)
+                .await
+                .unwrap_err(),
+            self.client
+                .post_beacon_blocks_v2_ssz(&block, None)
+                .await
+                .unwrap_err(),
+            self.client
+                .post_beacon_blinded_blocks(&blinded_block)
+                .await
+                .unwrap_err(),
+            self.client
+                .post_beacon_blinded_blocks_v2(&blinded_block, None)
+                .await
+                .unwrap_err(),
+            self.client
+                .post_beacon_blinded_blocks_ssz(&blinded_block)
+                .await
+                .unwrap_err(),
+            self.client
+                .post_beacon_blinded_blocks_v2_ssz(&blinded_block, None)
+                .await
+                .unwrap_err(),
+        ];
+        for (i, response) in responses.into_iter().enumerate() {
+            assert_eq!(
+                response.status().unwrap(),
+                StatusCode::ACCEPTED,
+                "response {i}"
+            );
+        }
 
         self
     }
@@ -4341,6 +4399,72 @@ impl ApiTester {
         self
     }
 
+    pub async fn test_get_expected_withdrawals_invalid_state(self) -> Self {
+        let state_id = CoreStateId::Root(Hash256::zero());
+
+        let result = self.client.get_expected_withdrawals(&state_id).await;
+
+        match result {
+            Err(e) => {
+                assert_eq!(e.status().unwrap(), 404);
+            }
+            _ => panic!("query did not fail correctly"),
+        }
+
+        self
+    }
+
+    pub async fn test_get_expected_withdrawals_capella(self) -> Self {
+        let slot = self.chain.slot().unwrap();
+        let state_id = CoreStateId::Slot(slot);
+
+        // calculate the expected withdrawals
+        let (mut state, _, _) = StateId(state_id).state(&self.chain).unwrap();
+        let proposal_slot = state.slot() + 1;
+        let proposal_epoch = proposal_slot.epoch(E::slots_per_epoch());
+        let (state_root, _, _) = StateId(state_id).root(&self.chain).unwrap();
+        if proposal_epoch != state.current_epoch() {
+            let _ = partial_state_advance(
+                &mut state,
+                Some(state_root),
+                proposal_slot,
+                &self.chain.spec,
+            );
+        }
+        let expected_withdrawals = get_expected_withdrawals(&state, &self.chain.spec).unwrap();
+
+        // fetch expected withdrawals from the client
+        let result = self.client.get_expected_withdrawals(&state_id).await;
+        match result {
+            Ok(withdrawal_response) => {
+                assert_eq!(withdrawal_response.execution_optimistic, Some(false));
+                assert_eq!(withdrawal_response.finalized, Some(false));
+                assert_eq!(withdrawal_response.data, expected_withdrawals.to_vec());
+            }
+            Err(e) => {
+                println!("{:?}", e);
+                panic!("query failed incorrectly");
+            }
+        }
+
+        self
+    }
+
+    pub async fn test_get_expected_withdrawals_pre_capella(self) -> Self {
+        let state_id = CoreStateId::Head;
+
+        let result = self.client.get_expected_withdrawals(&state_id).await;
+
+        match result {
+            Err(e) => {
+                assert_eq!(e.status().unwrap(), 400);
+            }
+            _ => panic!("query did not fail correctly"),
+        }
+
+        self
+    }
+
     pub async fn test_get_events_altair(self) -> Self {
         let topics = vec![EventTopic::ContributionAndProof];
         let mut events_future = self
@@ -4581,6 +4705,14 @@ async fn post_beacon_blocks_invalid() {
     ApiTester::new()
         .await
         .test_post_beacon_blocks_invalid()
+        .await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn post_beacon_blocks_duplicate() {
+    ApiTester::new()
+        .await
+        .test_post_beacon_blocks_duplicate()
         .await;
 }
 
@@ -5121,5 +5253,39 @@ async fn optimistic_responses() {
     ApiTester::new_with_hard_forks(true, true)
         .await
         .test_check_optimistic_responses()
+        .await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn expected_withdrawals_invalid_pre_capella() {
+    let mut config = ApiTesterConfig::default();
+    config.spec.altair_fork_epoch = Some(Epoch::new(0));
+    ApiTester::new_from_config(config)
+        .await
+        .test_get_expected_withdrawals_pre_capella()
+        .await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn expected_withdrawals_invalid_state() {
+    let mut config = ApiTesterConfig::default();
+    config.spec.altair_fork_epoch = Some(Epoch::new(0));
+    config.spec.bellatrix_fork_epoch = Some(Epoch::new(0));
+    config.spec.capella_fork_epoch = Some(Epoch::new(0));
+    ApiTester::new_from_config(config)
+        .await
+        .test_get_expected_withdrawals_invalid_state()
+        .await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn expected_withdrawals_valid_capella() {
+    let mut config = ApiTesterConfig::default();
+    config.spec.altair_fork_epoch = Some(Epoch::new(0));
+    config.spec.bellatrix_fork_epoch = Some(Epoch::new(0));
+    config.spec.capella_fork_epoch = Some(Epoch::new(0));
+    ApiTester::new_from_config(config)
+        .await
+        .test_get_expected_withdrawals_capella()
         .await;
 }
