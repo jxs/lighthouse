@@ -2,7 +2,7 @@ use beacon_node::{get_data_dir, set_network_config};
 use clap::ArgMatches;
 use eth2_network_config::Eth2NetworkConfig;
 use lighthouse_network::discovery::create_enr_builder_from_config;
-use lighthouse_network::discv5::{enr::CombinedKey, Discv5Config, Enr};
+use lighthouse_network::discv5::{self, enr::CombinedKey, Enr};
 use lighthouse_network::{
     discovery::{load_enr_from_disk, use_or_load_enr},
     load_private_key, CombinedKeyExt, NetworkConfig,
@@ -20,7 +20,7 @@ pub struct BootNodeConfig<T: EthSpec> {
     pub boot_nodes: Vec<Enr>,
     pub local_enr: Enr,
     pub local_key: CombinedKey,
-    pub discv5_config: Discv5Config,
+    pub discv5_config: discv5::Config,
     phantom: PhantomData<T>,
 }
 

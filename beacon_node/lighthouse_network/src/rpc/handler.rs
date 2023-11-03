@@ -12,8 +12,7 @@ use futures::prelude::*;
 use futures::{Sink, SinkExt};
 use libp2p::swarm::handler::{
     ConnectionEvent, ConnectionHandler, ConnectionHandlerEvent, DialUpgradeError,
-    FullyNegotiatedInbound, FullyNegotiatedOutbound, KeepAlive, StreamUpgradeError,
-    SubstreamProtocol,
+    FullyNegotiatedInbound, FullyNegotiatedOutbound, StreamUpgradeError, SubstreamProtocol,
 };
 use libp2p::swarm::Stream;
 use slog::{crit, debug, trace, warn};
@@ -339,7 +338,7 @@ where
         }
     }
 
-    fn connection_keep_alive(&self) -> KeepAlive {
+    fn connection_keep_alive(&self) -> bool {
         // Check that we don't have outbound items pending for dialing, nor dialing, nor
         // established. Also check that there are no established inbound substreams.
         // Errors and events need to be reported back, so check those too.
@@ -358,9 +357,9 @@ where
             _ => false,
         };
         if should_shutdown {
-            KeepAlive::No
+            false
         } else {
-            KeepAlive::Yes
+            true
         }
     }
 
@@ -874,6 +873,7 @@ where
                 // We dont care about these changes as they have no bearing on our RPC internal
                 // logic.
             }
+            _ => {}
         }
     }
 }

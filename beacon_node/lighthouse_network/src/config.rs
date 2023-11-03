@@ -5,7 +5,6 @@ use crate::{Enr, PeerIdSerialized};
 use directory::{
     DEFAULT_BEACON_NODE_DIR, DEFAULT_HARDCODED_NETWORK, DEFAULT_NETWORK_DIR, DEFAULT_ROOT_DIR,
 };
-use discv5::{Discv5Config, Discv5ConfigBuilder};
 use libp2p::gossipsub;
 use libp2p::Multiaddr;
 use serde_derive::{Deserialize, Serialize};
@@ -85,7 +84,7 @@ pub struct Config {
 
     /// Discv5 configuration parameters.
     #[serde(skip)]
-    pub discv5_config: Discv5Config,
+    pub discv5_config: discv5::Config,
 
     /// List of nodes to initially connect to.
     pub boot_nodes_enr: Vec<Enr>,
@@ -314,7 +313,7 @@ impl Default for Config {
             discv5::ListenConfig::from_ip(Ipv4Addr::UNSPECIFIED.into(), 9000);
 
         // discv5 configuration
-        let discv5_config = Discv5ConfigBuilder::new(discv5_listen_config)
+        let discv5_config = discv5::ConfigBuilder::new(discv5_listen_config)
             .enable_packet_filter()
             .session_cache_capacity(5000)
             .request_timeout(Duration::from_secs(1))
@@ -451,9 +450,9 @@ pub fn gossipsub_config(
 ) -> gossipsub::Config {
     // The function used to generate a gossipsub message id
     // We use the first 8 bytes of SHA256(topic, data) for content addressing
-    let fast_gossip_message_id = |message: &gossipsub::RawMessage| {
+    let fast_gossip_message_id = |message: &gossipsub::Message| {
         let data = [message.topic.as_str().as_bytes(), &message.data].concat();
-        gossipsub::FastMessageId::from(&Sha256::digest(&data)[..8])
+        gossipsub::MessageId::from(&Sha256::digest(&data)[..8])
     };
     fn prefix(
         prefix: [u8; 4],
@@ -512,7 +511,7 @@ pub fn gossipsub_config(
         .validation_mode(gossipsub::ValidationMode::Anonymous)
         .duplicate_cache_time(DUPLICATE_CACHE_TIME)
         .message_id_fn(gossip_message_id)
-        .fast_message_id_fn(fast_gossip_message_id)
+        .message_id_fn(fast_gossip_message_id)
         .allow_self_origin(true)
         .build()
         .expect("valid gossipsub configuration")

@@ -3997,7 +3997,9 @@ dependencies = [
  "libp2p-quic",
  "libp2p-swarm 0.44.0",
  "libp2p-tcp",
+ "libp2p-tls",
  "libp2p-upnp",
+ "libp2p-websocket",
  "libp2p-yamux",
  "multiaddr 0.18.0",
  "pin-project",
@@ -4140,7 +4142,7 @@ dependencies = [
  "libp2p-core 0.41.0",
  "libp2p-identity",
  "libp2p-swarm 0.44.0",
- "prometheus-client 0.22.0",
+ "prometheus-client",
  "quick-protobuf",
  "quick-protobuf-codec",
  "rand",
@@ -4227,7 +4229,7 @@ dependencies = [
  "libp2p-identify",
  "libp2p-identity",
  "libp2p-swarm 0.44.0",
- "prometheus-client 0.22.0",
+ "prometheus-client",
 ]
 
 [[package]]
@@ -4415,6 +4417,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "libp2p-websocket"
+version = "0.43.0"
+source = "git+https://github.com/libp2p/rust-libp2p.git?branch=deps/less-allocations-in-codec#89d16e118aedda6ab369c9c1678ff8e45c29d5c7"
+dependencies = [
+ "either",
+ "futures",
+ "futures-rustls",
+ "libp2p-core 0.41.0",
+ "libp2p-identity",
+ "parking_lot 0.12.1",
+ "pin-project-lite",
+ "rw-stream-sink 0.4.0 (git+https://github.com/libp2p/rust-libp2p.git?branch=deps/less-allocations-in-codec)",
+ "soketto",
+ "tracing",
+ "url",
+ "webpki-roots",
+]
+
+[[package]]
 name = "libp2p-yamux"
 version = "0.45.0"
 source = "git+https://github.com/libp2p/rust-libp2p.git?branch=deps/less-allocations-in-codec#89d16e118aedda6ab369c9c1678ff8e45c29d5c7"
@@ -4571,7 +4592,7 @@ dependencies = [
  "lru 0.7.8",
  "lru_cache",
  "parking_lot 0.12.1",
- "prometheus-client 0.21.2",
+ "prometheus-client",
  "quickcheck",
  "quickcheck_macros",
  "rand",
@@ -6089,18 +6110,6 @@ dependencies = [
 
 [[package]]
 name = "prometheus-client"
-version = "0.21.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c99afa9a01501019ac3a14d71d9f94050346f55ca471ce90c799a15c58f61e2"
-dependencies = [
- "dtoa",
- "itoa",
- "parking_lot 0.12.1",
- "prometheus-client-derive-encode",
-]
-
-[[package]]
-name = "prometheus-client"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "510c4f1c9d81d556458f94c98f857748130ea9737bbd6053da497503b26ea63c"
@@ -7056,6 +7065,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha-1"
+version = "0.9.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99cd6713db3cf16b6c84e06321e049a9b9f699826e16096d23bbcc44d15d51a6"
+dependencies = [
+ "block-buffer 0.9.0",
+ "cfg-if",
+ "cpufeatures",
+ "digest 0.9.0",
+ "opaque-debug",
+]
+
+[[package]]
 name = "sha1"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7426,6 +7448,21 @@ checksum = "7b5fac59a5cb5dd637972e5fca70daf0523c9067fcdc4842f053dae04a18f8e9"
 dependencies = [
  "libc",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "soketto"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41d1c5305e39e09653383c2c7244f2f78b3bcae37cf50c64cb4789c9f5096ec2"
+dependencies = [
+ "base64 0.13.1",
+ "bytes",
+ "futures",
+ "httparse",
+ "log",
+ "rand",
+ "sha-1",
 ]
 
 [[package]]
@@ -9158,9 +9195,9 @@ checksum = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538"
 
 [[package]]
 name = "winnow"
-version = "0.5.18"
+version = "0.5.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "176b6138793677221d420fd2f0aeeced263f197688b36484660da767bca2fa32"
+checksum = "829846f3e3db426d4cee4510841b71a8e58aa2a76b1132579487ae430ccd9c7b"
 dependencies = [
  "memchr",
 ]
