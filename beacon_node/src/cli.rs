@@ -505,6 +505,14 @@ pub fn cli_app<'a, 'b>() -> App<'a, 'b> {
             Shufflings are dependent on validator count and setting this value to a large number can consume a large amount of memory.")
             .takes_value(true)
         )
+            .arg(
+            Arg::with_name("max-gossipsub-queue")
+            .long("max-gossipsub-queue")
+            .help("Configures the max size for each gossipsub peer queue.")
+            .takes_value(true)
+            .hidden(true)
+        )
+
 
         /*
          * Monitoring metrics

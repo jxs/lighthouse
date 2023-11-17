@@ -1400,6 +1400,14 @@ pub fn set_network_config(
             Some(config_str.parse()?)
         }
     };
+
+    config.max_gossipsub_peer_queue = match cli_args.value_of("max-gossipsub-queue") {
+        Some(len) => len
+            .parse()
+            .map_err(|_| format!("Invalid max gossipsub queue size: {}", len))?,
+        None => 1000,
+    };
+
     Ok(())
 }
 

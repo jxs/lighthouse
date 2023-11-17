@@ -42,6 +42,7 @@ pub fn gossip_max_size(is_merge_enabled: bool, gossip_max_size: usize) -> usize 
 pub struct GossipsubConfigParams {
     pub message_domain_valid_snappy: [u8; 4],
     pub gossip_max_size: usize,
+    pub max_peer_queue: usize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -152,6 +153,9 @@ pub struct Config {
 
     /// Configuration for the inbound rate limiter (requests received by this node).
     pub inbound_rate_limiter_config: Option<InboundRateLimiterConfig>,
+
+    /// Max Gossipsub peer queue size.
+    pub max_gossipsub_peer_queue: usize,
 }
 
 impl Config {
@@ -369,6 +373,7 @@ impl Default for Config {
             outbound_rate_limiter_config: None,
             invalid_block_storage: None,
             inbound_rate_limiter_config: None,
+            max_gossipsub_peer_queue: 1000,
         }
     }
 }
@@ -514,6 +519,7 @@ pub fn gossipsub_config(
         .message_id_fn(gossip_message_id)
         .fast_message_id_fn(fast_gossip_message_id)
         .allow_self_origin(true)
+        .handler_max_queue(gossipsub_config_params.max_peer_queue)
         .build()
         .expect("valid gossipsub configuration")
 }

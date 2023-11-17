@@ -44,11 +44,12 @@ prometheus-client = "0.21.0"
 unused_port = { workspace = true }
 delay_map = { workspace = true }
 void = "1"
-libp2p-quic= { version = "0.9.2", features=["tokio"]}
-libp2p-mplex = "0.40.0"
+libp2p-quic= { git = "https://github.com/jxs/rust-libp2p/", branch = "gossipsub-starve-slow-peers", features=["tokio"]}
+libp2p-mplex = { git = "https://github.com/jxs/rust-libp2p/", branch = "gossipsub-starve-slow-peers"}
 
 [dependencies.libp2p]
-version = "0.52"
+git = "https://github.com/jxs/rust-libp2p/"
+branch = "gossipsub-starve-slow-peers"
 default-features = false
 features = ["identify", "yamux", "noise", "gossipsub", "dns", "tcp", "tokio", "plaintext", "secp256k1", "macros", "ecdsa"]
 

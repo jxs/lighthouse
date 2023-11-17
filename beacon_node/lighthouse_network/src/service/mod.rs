@@ -233,6 +233,7 @@ impl<AppReqId: ReqId, TSpec: EthSpec> Network<AppReqId, TSpec> {
             let gossipsub_config_params = GossipsubConfigParams {
                 message_domain_valid_snappy: ctx.chain_spec.message_domain_valid_snappy,
                 gossip_max_size: ctx.chain_spec.gossip_max_size as usize,
+                max_peer_queue: config.max_gossipsub_peer_queue,
             };
             config.gs_config = gossipsub_config(
                 config.network_load,
@@ -1176,6 +1177,9 @@ impl<AppReqId: ReqId, TSpec: EthSpec> Network<AppReqId, TSpec> {
                     Some(GoodbyeReason::Unknown),
                     "does_not_support_gossipsub",
                 );
+            }
+            gossipsub::Event::ReportPeer(peer_id) => {
+                debug!(self.log, "Starved slow gossipsub peer"; "peer_id" => %peer_id);
             }
         }
         None
