@@ -377,18 +377,18 @@ pub fn load_pem_certificate<P: AsRef<Path>>(pem_path: P) -> Result<Certificate, 
     Certificate::from_pem(&buf).map_err(Error::InvalidWeb3SignerRootCertificate)
 }
 
-pub fn load_pkcs12_identity<P: AsRef<Path>>(
-    pkcs12_path: P,
-    password: &str,
-) -> Result<Identity, Error> {
-    let mut buf = Vec::new();
-    File::open(&pkcs12_path)
-        .map_err(Error::InvalidWeb3SignerClientIdentityCertificateFile)?
-        .read_to_end(&mut buf)
-        .map_err(Error::InvalidWeb3SignerClientIdentityCertificateFile)?;
-    Identity::from_pkcs12_der(&buf, password)
-        .map_err(Error::InvalidWeb3SignerClientIdentityCertificate)
-}
+// pub fn load_pkcs12_identity<P: AsRef<Path>>(
+//     pkcs12_path: P,
+//     password: &str,
+// ) -> Result<Identity, Error> {
+//     let mut buf = Vec::new();
+//     File::open(&pkcs12_path)
+//         .map_err(Error::InvalidWeb3SignerClientIdentityCertificateFile)?
+//         .read_to_end(&mut buf)
+//         .map_err(Error::InvalidWeb3SignerClientIdentityCertificateFile)?;
+//     Identity::from_pkcs12_der(&buf, password)
+//         .map_err(Error::InvalidWeb3SignerClientIdentityCertificate)
+// }
 
 fn build_web3_signer_url(base_url: &str, voting_public_key: &PublicKey) -> Result<Url, ParseError> {
     Url::parse(base_url)?.join(&format!("api/v1/eth2/sign/{}", voting_public_key))
@@ -414,18 +414,18 @@ fn build_web3_signer_client(
         builder
     };
 
-    let builder = if let Some(path) = client_identity_path {
-        let identity = load_pkcs12_identity(
-            path,
-            &client_identity_password.ok_or(Error::MissingWeb3SignerClientIdentityPassword)?,
-        )?;
-        builder.identity(identity)
-    } else {
-        if client_identity_password.is_some() {
-            return Err(Error::MissingWeb3SignerClientIdentityCertificateFile);
-        }
-        builder
-    };
+    // let builder = if let Some(path) = client_identity_path {
+    //     let identity = load_pkcs12_identity(
+    //         path,
+    //         &client_identity_password.ok_or(Error::MissingWeb3SignerClientIdentityPassword)?,
+    //     )?;
+    //     builder.identity(identity)
+    // } else {
+    //     if client_identity_password.is_some() {
+    //         return Err(Error::MissingWeb3SignerClientIdentityCertificateFile);
+    //     }
+    //     builder
+    // };
 
     builder
         .build()
