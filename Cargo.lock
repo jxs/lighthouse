@@ -4884,7 +4884,7 @@ dependencies = [
 [[package]]
 name = "libp2p-gossipsub"
 version = "0.49.0"
-source = "git+https://github.com/sigp/rust-libp2p.git?rev=7a36e4c#7a36e4cde83041f1bd5f2078c4d3934ccb16777e"
+source = "git+https://github.com/sigp/rust-libp2p.git?branch=rework-behaviour-handler-message-dispatch#bf0b26612aab964d02bff6101503b7ac9b23b806"
 dependencies = [
  "async-channel 2.3.1",
  "asynchronous-codec",

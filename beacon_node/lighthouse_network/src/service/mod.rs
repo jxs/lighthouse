@@ -1590,10 +1590,8 @@ impl<E: EthSpec> Network<E> {
             } => {
                 debug!(
                     peer_id = %peer_id,
-                    publish = failed_messages.publish,
-                    forward = failed_messages.forward,
-                    priority = failed_messages.priority,
-                    non_priority = failed_messages.non_priority,
+                    timeout = failed_messages.timeout,
+                    queue_full = failed_messages.queue_full,
                     "Slow gossipsub peer"
                 );
                 // Punish the peer if it cannot handle priority messages
@@ -1606,7 +1604,7 @@ impl<E: EthSpec> Network<E> {
                         None,
                         "publish_timeout_penalty",
                     );
-                } else if failed_messages.total_queue_full() > 10 {
+                } else if failed_messages.queue_full > 10 {
                     debug!(%peer_id, "Slow gossipsub peer penalized for send queue full");
                     self.peer_manager_mut().report_peer(
                         &peer_id,
