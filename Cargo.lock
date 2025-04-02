@@ -1915,7 +1915,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18e4fdb82bd54a12e42fb58a800dcae6b9e13982238ce2296dc3570b92148e1f"
 dependencies = [
  "data-encoding",
- "syn 2.0.100",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -4884,7 +4884,7 @@ dependencies = [
 [[package]]
 name = "libp2p-gossipsub"
 version = "0.49.0"
-source = "git+https://github.com/sigp/rust-libp2p.git?branch=rework-behaviour-handler-message-dispatch#8b9e2888be1cb7b724771777211948b10039bef6"
+source = "git+https://github.com/sigp/rust-libp2p.git?branch=rework-behaviour-handler-message-dispatch#4d02fea727d25214b0ae0eca2c4bd3dd8efb2e26"
 dependencies = [
  "async-channel 2.3.1",
  "asynchronous-codec",
