@@ -251,6 +251,7 @@ impl<Id: ReqId, E: EthSpec> RPC<Id, E> {
             }
         }
 
+        debug!(%peer_id, ?request_id, %response, "Dispatching response to connection handler");
         self.events.push(ToSwarm::NotifyHandler {
             peer_id,
             handler: NotifyHandler::One(request_id.connection_id),
