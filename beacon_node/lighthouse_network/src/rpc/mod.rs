@@ -217,6 +217,7 @@ impl<Id: ReqId, E: EthSpec> RPC<Id, E> {
             return Err(response);
         };
 
+        debug!("Sending Response {request_id:?} to {peer_id}");
         // Add the request back to active requests if the response is `Success` and requires stream
         // termination.
         if request_type.protocol().terminator().is_some()
