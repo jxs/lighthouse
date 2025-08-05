@@ -2212,7 +2212,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18e4fdb82bd54a12e42fb58a800dcae6b9e13982238ce2296dc3570b92148e1f"
 dependencies = [
  "data-encoding",
- "syn 2.0.100",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -3982,6 +3982,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashlink"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7382cf6263419f2d8df38c55d7da83da5c18aef87fc7a7fc1fb1e344edfe14c1"
+dependencies = [
+ "hashbrown 0.15.2",
+]
+
+[[package]]
 name = "hdrhistogram"
 version = "7.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5187,7 +5196,7 @@ dependencies = [
 [[package]]
 name = "libp2p-gossipsub"
 version = "0.50.0"
-source = "git+https://github.com/sigp/rust-libp2p.git?branch=sigp-gossipsub#ca16d7733fa53c2a5589cbc4b4f556a419709c25"
+source = "git+https://github.com/jxs/rust-libp2p.git?branch=rework-behaviour-handler-message-dispatch#119bef5e43301fa97cc81d522849fd3bcea9fdcc"
 dependencies = [
  "async-channel 2.3.1",
  "asynchronous-codec",
@@ -5199,7 +5208,7 @@ dependencies = [
  "futures",
  "futures-timer",
  "getrandom 0.2.15",
- "hashlink 0.9.1",
+ "hashlink 0.10.0",
  "hex_fmt",
  "libp2p-core",
  "libp2p-identity",

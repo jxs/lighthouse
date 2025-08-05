@@ -347,7 +347,10 @@ impl<E: EthSpec> Network<E> {
 
             // If metrics are enabled for libp2p build the configuration
             if let Some(ref mut registry) = ctx.libp2p_registry {
-                gossipsub = gossipsub.with_metrics(registry, Default::default());
+                gossipsub = gossipsub.with_metrics(
+                    registry.sub_registry_with_prefix("gossipsub"),
+                    Default::default(),
+                );
             }
 
             gossipsub
@@ -1642,14 +1645,12 @@ impl<E: EthSpec> Network<E> {
             } => {
                 debug!(
                     peer_id = %peer_id,
-                    publish = failed_messages.publish,
-                    forward = failed_messages.forward,
                     priority = failed_messages.priority,
                     non_priority = failed_messages.non_priority,
                     "Slow gossipsub peer"
                 );
                 // Punish the peer if it cannot handle priority messages
-                if failed_messages.timeout > 10 {
+                if failed_messages.priority > 10 {
                     debug!(%peer_id, "Slow gossipsub peer penalized for priority failure");
                     self.peer_manager_mut().report_peer(
                         &peer_id,
@@ -1658,7 +1659,7 @@ impl<E: EthSpec> Network<E> {
                         None,
                         "publish_timeout_penalty",
                     );
-                } else if failed_messages.total_queue_full() > 10 {
+                } else if failed_messages.non_priority > 10 {
                     debug!(%peer_id, "Slow gossipsub peer penalized for send queue full");
                     self.peer_manager_mut().report_peer(
                         &peer_id,
